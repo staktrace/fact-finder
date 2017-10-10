@@ -1,7 +1,20 @@
 "use strict";
 
+let pairCount = -1;
+
 function onError(error) {
     console.error(`Error: ${error}`);
+}
+
+function readPairCount(data) {
+    pairCount = Number(data.pairCount);
+}
+
+function incrementPairCount() {
+    pairCount++;
+    browser.storage.local.set({
+        "pairCount": pairCount
+    }).then(null).catch(onError);
 }
 
 function submitCollection(response) {
@@ -14,7 +27,10 @@ function submitCollection(response) {
         return;
     }
 
-    // TODO: submit response via XHR?
+    console.log("Collecting [" + JSON.stringify(response) + "]");
+    let data = {};
+    data["data" + pairCount] = response;
+    browser.storage.local.set(data).then(incrementPairCount).catch(onError);
 }
 
 function requestCollection(tabs) {
@@ -29,3 +45,5 @@ browser.browserAction.onClicked.addListener(function() {
         active: true
     }).then(requestCollection).catch(onError);
 });
+
+browser.storage.local.get({"pairCount": 0}).then(readPairCount).catch(onError);
